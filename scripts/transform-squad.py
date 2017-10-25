@@ -57,9 +57,11 @@ def transform_squad(original_json_file,output):
         # data to be dumped
         id = 0
         data_list = []
+        n_context = 0
         n_question = 0
         n_answer = 0
         n_error_ssplit = 0
+        n_illed_context = 0
         # sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
         for article in original_data['data']:
@@ -68,8 +70,12 @@ def transform_squad(original_json_file,output):
                 context = paragraph['context']
 
                 sentences,spaces = ssplit(context)
+                n_context += 1
                 # check if has two same sentences
-                assert len(set(sentences)) == len(sentences),'context has two same sentences'
+                if len(set(sentences)) != len(sentences):
+                    print ('context has two same sentences')
+                    n_illed_context += 1
+                    continue
 
                 len_sentences = [len(s) for s in sentences]
 
@@ -106,7 +112,7 @@ def transform_squad(original_json_file,output):
                                 except ValueError:
                                     error_ssplit = True
                                     n_error_ssplit += 1
-                                    print('Error ssplit')
+                                    # print('Error ssplit')
                             else:
                                 sample = {
                                           "sentence_A": qa['question'],
@@ -119,10 +125,11 @@ def transform_squad(original_json_file,output):
                                     data_list = data_list[:-sen_id]
                                     # print (data_list[-1])
                                     break
-
+        print ('num of context: {}'.format(n_context))
         print ('num of question: {}'.format(n_question))
         print ('num of answer: {}'.format(n_answer))
         print ('num of error_ssplit: {}'.format(n_error_ssplit))
+        print ('num of illed_context: {}'.format(n_illed_context))
         print ('num of data(duplicate): {}'.format(len(data_list)))
         fi_data_list = set(data_list)
         print ('num of data: {}'.format(len(fi_data_list)))
@@ -134,5 +141,14 @@ def transform_squad(original_json_file,output):
                         str(sample['relatedness_score'])+'\t'+sample['entailment_judgment']+'\n')
 
 if __name__ == '__main__':
-    analysis_label('output_2.txt')
-    # transform_squad('none_n1000_k1_s0.json','output_2.txt')
+    # print('=' * 80)
+    # print('Transforming squad training')
+    # print('=' * 80)
+    # transform_squad('train-v1.1.json','SICK_squad_train.txt')
+    # print('=' * 80)
+    # print('Transforming squad dev')
+    # print('=' * 80)
+    # transform_squad('dev-v1.1.json','SICK_squad_trial.txt')
+    analysis_label('SICK_squad_train.txt')
+    print('=' * 80)
+    analysis_label('SICK_squad_trial.txt')
