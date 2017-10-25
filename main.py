@@ -31,7 +31,7 @@ def main():
     global args
     args = parse_args()
     args.input_dim, args.mem_dim = 300, 150
-    args.hidden_dim, args.num_classes = 50, 5
+    args.hidden_dim, args.num_classes = 50, 2
     args.cuda = args.cuda and torch.cuda.is_available()
     if args.sparse and args.wd!=0:
         print('Sparsity and weight decay are incompatible, pick one!')
