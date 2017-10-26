@@ -62,8 +62,9 @@ def split(filepath, dst_dir):
 def parse(dirpath, cp=''):
     dependency_parse(os.path.join(dirpath, 'a.txt'), cp=cp, tokenize=True)
     dependency_parse(os.path.join(dirpath, 'b.txt'), cp=cp, tokenize=True)
-    constituency_parse(os.path.join(dirpath, 'a.txt'), cp=cp, tokenize=True)
-    constituency_parse(os.path.join(dirpath, 'b.txt'), cp=cp, tokenize=True)
+    # dependency tree lstm dont use constituency data
+    # constituency_parse(os.path.join(dirpath, 'a.txt'), cp=cp, tokenize=True)
+    # constituency_parse(os.path.join(dirpath, 'b.txt'), cp=cp, tokenize=True)
 
 if __name__ == '__main__':
     print('=' * 80)
