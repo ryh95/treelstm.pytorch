@@ -3,9 +3,9 @@ import json
 import random
 from nltk.tokenize import WordPunctTokenizer
 
-import nltk
+import re
 # ssplit sentence in squad
-from my_tools.core_nlp import StanfordCoreNLP
+from pycorenlp import StanfordCoreNLP
 
 nlp = StanfordCoreNLP('http://localhost:9000')
 
@@ -34,22 +34,6 @@ def ssplit(context):
 
     return split_sentences,space_between_sen
 
-def analysis_label(sick_file):
-    n_pos = 0
-    n_neg = 0
-    n = 0
-    with open(sick_file,'r') as f:
-        f.readline()
-        for line in f:
-            i, a, b, sim, ent = line.strip().split('\t')
-            if int(sim) == 1:
-                n_pos += 1
-            elif int(sim) == 0:
-                n_neg += 1
-            n = i
-    print ('num of positive samples: {}'.format(n_pos))
-    print ('num of negetive samples: {}'.format(n_neg))
-    print ('num of samples: {}'.format(n))
 
 def transform_squad(original_json_file,output):
     with open(original_json_file,'r') as original_file:
@@ -105,7 +89,7 @@ def transform_squad(original_json_file,output):
                                     sample = {
                                               "sentence_A":qa['question'],
                                               "sentence_B":sentence.replace('\n',''),
-                                              "relatedness_score":1 ,
+                                              "relatedness_score":2 ,
                                               "entailment_judgment": 'Null'
                                     }
                                     data_list.append(json.dumps(sample))
@@ -117,7 +101,7 @@ def transform_squad(original_json_file,output):
                                 sample = {
                                           "sentence_A": qa['question'],
                                           "sentence_B": sentence.replace('\n',''),
-                                          "relatedness_score": 0,
+                                          "relatedness_score": 1,
                                           "entailment_judgment": 'Null'
                                 }
                                 data_list.append(json.dumps(sample))
@@ -141,14 +125,14 @@ def transform_squad(original_json_file,output):
                         str(sample['relatedness_score'])+'\t'+sample['entailment_judgment']+'\n')
 
 if __name__ == '__main__':
-    # print('=' * 80)
-    # print('Transforming squad training')
-    # print('=' * 80)
-    # transform_squad('train-v1.1.json','SICK_squad_train.txt')
-    # print('=' * 80)
-    # print('Transforming squad dev')
-    # print('=' * 80)
-    # transform_squad('dev-v1.1.json','SICK_squad_trial.txt')
-    analysis_label('SICK_squad_train.txt')
     print('=' * 80)
-    analysis_label('SICK_squad_trial.txt')
+    print('Transforming squad training')
+    print('=' * 80)
+    transform_squad('train-v1.1.json','SICK_squad_train.txt')
+    print('=' * 80)
+    print('Transforming squad dev')
+    print('=' * 80)
+    transform_squad('dev-v1.1.json','SICK_squad_trial.txt')
+    # analysis_label('SICK_squad_train.txt')
+    # print('=' * 80)
+    # analysis_label('SICK_squad_trial.txt')
