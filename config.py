@@ -2,7 +2,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch TreeLSTM for Sentence Similarity on Dependency Trees')
-    parser.add_argument('--data', default='data/sick/',
+    parser.add_argument('--data', default='data/squad/',
                         help='path to dataset')
     parser.add_argument('--glove', default='data/glove/',
                         help='directory with GLOVE embeddings')
