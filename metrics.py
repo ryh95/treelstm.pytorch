@@ -23,12 +23,21 @@ class Metrics():
         return nn.MSELoss()(x,y).data[0]
 
     def f1(self, predictions,labels):
+        '''
+
+        :param predictions: float tensor
+        :param labels: int tensor
+        :return:
+        '''
         x = Var(deepcopy(predictions), volatile=True)
         y = Var(deepcopy(labels), volatile=True)
+        # TODO: make 1.5(1+2/2)
+        x = (x >= 1.5).type(torch.IntTensor)
+        y = y - 1
         return f1_score(y.data.numpy(),x.data.numpy())
 
 if __name__ == "__main__":
     # test f1
-    pred = torch.FloatTensor([0,0,1,1,0,0])
-    true = torch.FloatTensor([0,0,1,1,0,1])
+    pred = torch.FloatTensor([1.4,1.6,1.6,1.1,2,2])
+    true = torch.FloatTensor([1,2,1,1,2,1])
     print Metrics(2).f1(pred,true)

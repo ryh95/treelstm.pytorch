@@ -139,10 +139,67 @@ def main():
         if best < dev_pearson:
             best = dev_pearson
             checkpoint = {'model': trainer.model.state_dict(), 'optim': trainer.optimizer,
-                          'pearson': dev_pearson, 'mse': dev_pearson,
+                          'pearson': dev_pearson, 'mse': dev_mse,
                           'args': args, 'epoch': epoch }
             print('==> New optimum found, checkpointing everything now...')
             torch.save(checkpoint, '%s.pt' % os.path.join(args.save, args.expname+'.pth'))
 
+def inference(checkpoint_path):
+    checkpoint = torch.load(checkpoint_path)
+    args = checkpoint['args']
+    optimizer = checkpoint['optim']
+    model_para = checkpoint['model']
+
+    sick_vocab_file = os.path.join(args.data, 'sick.vocab')
+    vocab = Vocab(filename=sick_vocab_file,
+                  data=[Constants.PAD_WORD, Constants.UNK_WORD, Constants.BOS_WORD, Constants.EOS_WORD])
+
+    model = SimilarityTreeLSTM(
+        args.cuda, vocab.size(),
+        args.input_dim, args.mem_dim,
+        args.hidden_dim, args.num_classes,
+        args.sparse)
+    criterion = nn.KLDivLoss()
+    metrics = Metrics(args.num_classes)
+
+    model.load_state_dict(model_para)
+
+    dev_file = os.path.join(args.data, 'sick_dev.pth')
+    dev_dir = os.path.join(args.data, 'dev/')
+    if os.path.isfile(dev_file):
+        dev_dataset = torch.load(dev_file)
+    else:
+        dev_dataset = SICKDataset(dev_dir, vocab, args.num_classes)
+        torch.save(dev_dataset, dev_file)
+    print('==> Size of dev data     : %d ' % len(dev_dataset))
+
+    train_dir = os.path.join(args.data, 'train/')
+    train_file = os.path.join(args.data, 'sick_train.pth')
+    if os.path.isfile(train_file):
+        train_dataset = torch.load(train_file)
+    else:
+        train_dataset = SICKDataset(train_dir, vocab, args.num_classes)
+        torch.save(train_dataset, train_file)
+    print('==> Size of train data   : %d ' % len(train_dataset))
+
+    trainer = Trainer(args, model, criterion, optimizer)
+    dev_loss, dev_pred = trainer.test(dev_dataset)
+    train_loss, train_pred = trainer.test(train_dataset)
+
+    train_pearson = metrics.pearson(train_pred, train_dataset.labels)
+    train_mse = metrics.mse(train_pred, train_dataset.labels)
+    train_f1 = metrics.f1(train_pred, train_dataset.labels)
+    print('==> Train    Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(train_loss, train_pearson, train_mse, train_f1))
+
+    dev_pearson = metrics.pearson(dev_pred, dev_dataset.labels)
+    dev_mse = metrics.mse(dev_pred, dev_dataset.labels)
+    dev_f1 = metrics.f1(dev_pred, dev_dataset.labels)
+    print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(dev_loss, dev_pearson, dev_mse, dev_f1))
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    global args
+    args = parse_args()
+    check_path = os.path.join(args.save, args.expname+'.pth.pt')
+    inference(check_path)
