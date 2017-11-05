@@ -121,9 +121,18 @@ def main():
     # create trainer object for training and testing
     trainer = Trainer(args, model, criterion, optimizer)
 
+    check_path = os.path.join(args.save, args.expname + '.pth.pt')
+
+    checkpoint = torch.load(check_path)
+    args = checkpoint['args']
+    optimizer = checkpoint['optim']
+    model_para = checkpoint['model']
+
+    model.load_state_dict(model_para)
+
     best = -float('inf')
     for epoch in range(args.epochs):
-        train_loss             = trainer.train(train_dataset)
+        # train_loss             = trainer.train(train_dataset)
         train_loss, train_pred = trainer.test(train_dataset)
         dev_loss, dev_pred     = trainer.test(dev_dataset)
 

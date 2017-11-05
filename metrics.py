@@ -1,4 +1,6 @@
 from copy import deepcopy
+
+import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score
@@ -41,3 +43,15 @@ if __name__ == "__main__":
     pred = torch.FloatTensor([1.4,1.6,1.6,1.1,2,2])
     true = torch.FloatTensor([1,2,1,1,2,1])
     print Metrics(2).f1(pred,true)
+
+    # test random F1 and MSE
+    true = [np.concatenate((np.ones(50),np.zeros(50))).tolist() for _ in range(100)]
+    pred = [np.random.randint(2, size=100).tolist() for _ in range(100)]
+    pred = torch.FloatTensor(pred)
+    true = torch.FloatTensor(true)
+    print Metrics(2).mse(pred,true)
+
+    pred = pred + 1
+    true = true + 1
+    print sum(Metrics(2).f1(pred[i],true[i]) for i in range(100))/float(100)
+
