@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import os, math
 import torch
+from copy import deepcopy
+from torch.autograd import Variable as Var
 from tree import Tree
 from vocab import Vocab
 
@@ -60,3 +62,22 @@ def map_label_to_target(label,num_classes):
         target[0][floor-1] = ceil - label
         target[0][ceil-1] = label - floor
     return target
+
+def collect_wrong_samples(preds,labels,dev_file_path):
+    x = Var(deepcopy(preds), volatile=True)
+    y = Var(deepcopy(labels), volatile=True)
+    # TODO: make 1.5(1+2/2)
+    x = (x >= 1.5).type(torch.IntTensor)
+    y = (y - 1).type(torch.IntTensor)
+    equal = (x == y).type(torch.IntTensor)
+
+    with open(dev_file_path,'r') as f,\
+         open('wrong_samples.txt','w') as f_out:
+        f.readline()
+        f_out.write('pair_ID' + '\t' + 'sentence_A' + '\t' + 'sentence_B' + '\t' + 'relatedness_score' + '\t' + 'pred_score'+ '\n' )
+        for line in f:
+            i, a, b, sim, ent = line.strip().split('\t')
+            if equal[i-1] == 0:
+                # means model makes mistakes
+                f_out.write('\t'.join([i,a,b,sim,preds[i-1]]) + '\n')
+

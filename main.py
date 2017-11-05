@@ -20,7 +20,7 @@ from dataset import SICKDataset
 # METRICS CLASS FOR EVALUATION
 from metrics import Metrics
 # UTILITY FUNCTIONS
-from utils import load_word_vectors, build_vocab
+from utils import load_word_vectors, build_vocab, collect_wrong_samples
 # CONFIG PARSER
 from config import parse_args
 # TRAIN AND TEST HELPER FUNCTIONS
@@ -149,6 +149,9 @@ def main():
         print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(dev_loss,dev_pearson,dev_mse,dev_f1))
 
         if args.is_inference:
+            # use for manual check and error analysis
+            dev_path = os.path.join(args.data, 'SICK_squad_trial.txt')
+            collect_wrong_samples(dev_pred,dev_dataset.labels,dev_path)
             break
 
         if best < dev_pearson:
