@@ -8,6 +8,7 @@ def parse_args():
                         help='directory with GLOVE embeddings')
     parser.add_argument('--save', default='checkpoints/',
                         help='directory to save checkpoints in')
+    parser.add_argument('--is_inference',default=False,help='use trained model to inference or not')
     parser.add_argument('--expname', type=str, default='test',
                         help='Name to identify experiment')
     parser.add_argument('--batchsize', default=25, type=int,
