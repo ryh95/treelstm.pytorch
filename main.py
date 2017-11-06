@@ -48,7 +48,7 @@ def main():
 
     train_dir = os.path.join(args.data,'train/')
     dev_dir = os.path.join(args.data,'dev/')
-    # test_dir = os.path.join(args.data,'test/')
+    test_dir = os.path.join(args.data,'test/')
 
     # write unique words from all token files
     sick_vocab_file = os.path.join(args.data,'sick.vocab')
@@ -78,6 +78,13 @@ def main():
         dev_dataset = SICKDataset(dev_dir, vocab, args.num_classes)
         torch.save(dev_dataset, dev_file)
     print('==> Size of dev data     : %d ' % len(dev_dataset))
+    test_file = os.path.join(args.data, 'sick_test.pth')
+    if os.path.isfile(test_file):
+        test_dataset = torch.load(test_file)
+    else:
+        test_dataset = SICKDataset(test_dir, vocab, args.num_classes)
+        torch.save(test_dataset, test_file)
+    print('==> Size of test data     : %d ' % len(test_dataset))
 
     # initialize model, criterion/loss_function, optimizer
     model = SimilarityTreeLSTM(
@@ -147,6 +154,13 @@ def main():
         dev_mse = metrics.mse(dev_pred,dev_dataset.labels)
         dev_f1 = metrics.f1(dev_pred,dev_dataset.labels)
         print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(dev_loss,dev_pearson,dev_mse,dev_f1))
+
+        test_loss, test_pred = trainer.test(test_dataset)
+
+        test_pearson = metrics.pearson(test_pred, test_dataset.labels)
+        test_mse = metrics.mse(test_pred, test_dataset.labels)
+        test_f1 = metrics.f1(test_pred, test_dataset.labels)
+        print('==> Test      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(test_loss, test_pearson, test_mse, test_f1))
 
         if args.is_inference:
             # use for manual check and error analysis
