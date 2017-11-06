@@ -7,6 +7,8 @@ import re
 # ssplit sentence in squad
 from pycorenlp import StanfordCoreNLP
 
+from scripts.utils import analysis_label
+
 nlp = StanfordCoreNLP('http://localhost:9000')
 
 def ssplit(context):
@@ -46,11 +48,13 @@ def transform_squad(original_json_file,output):
         n_answer = 0
         n_error_ssplit = 0
         n_illed_context = 0
+        n_sen = 0
+        n_sen_list = []
         # sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
 
-        for article in original_data['data']:
+        for article_id,article in enumerate(original_data['data'],1):
 
-            for para_id,paragraph in enumerate(article['paragraphs']):
+            for para_id,paragraph in enumerate(article['paragraphs'],1):
                 context = paragraph['context']
 
                 sentences,spaces = ssplit(context)
@@ -66,6 +70,8 @@ def transform_squad(original_json_file,output):
 
                 for qa in paragraph['qas']:
                     n_question += 1
+                    n_sen += len(sentences)
+                    n_sen_list.append(n_sen)
                     for answer in qa['answers']:
                         n_answer += 1
                         # contain too many duplicate sentence pairs
@@ -86,11 +92,12 @@ def transform_squad(original_json_file,output):
                             if sen_id == sen_pos:
                                 try:
                                     idx = sentence.index(text)
-                                    sample = {
+                                    sample = {"pair_ID":str(article_id)+'-'+str(para_id),
                                               "sentence_A":qa['question'],
                                               "sentence_B":sentence.replace('\n',''),
-                                              "relatedness_score":2 ,
-                                              "entailment_judgment": 'Null'
+                                              "relatedness_score":'2' ,
+                                              "answer": text,
+                                              "is_adversarial": '1' if sen_id == len(sentences)-1 else '0'
                                     }
                                     data_list.append(json.dumps(sample))
                                 except ValueError:
@@ -98,11 +105,12 @@ def transform_squad(original_json_file,output):
                                     n_error_ssplit += 1
                                     # print('Error ssplit')
                             else:
-                                sample = {
+                                sample = {"pair_ID":str(article_id)+'-'+str(para_id),
                                           "sentence_A": qa['question'],
                                           "sentence_B": sentence.replace('\n',''),
-                                          "relatedness_score": 1,
-                                          "entailment_judgment": 'Null'
+                                          "relatedness_score": '1',
+                                          "answer": 'Null',
+                                          "is_adversarial": '1' if sen_id == len(sentences) - 1 else '0'
                                 }
                                 data_list.append(json.dumps(sample))
                                 if error_ssplit == True:
@@ -112,27 +120,70 @@ def transform_squad(original_json_file,output):
         print ('num of context: {}'.format(n_context))
         print ('num of question: {}'.format(n_question))
         print ('num of answer: {}'.format(n_answer))
+        print ('num of sentences: {}'.format(n_sen))
+        print ('num of paras: {}'.format(len(n_sen_list)))
+        print ('num of average sentences: {}'.format(n_sen/len(n_sen_list)))
         print ('num of error_ssplit: {}'.format(n_error_ssplit))
         print ('num of illed_context: {}'.format(n_illed_context))
         print ('num of data(duplicate): {}'.format(len(data_list)))
         fi_data_list = set(data_list)
+        # sort according to int pair_ID
+        fi_data_list = sorted(fi_data_list,key=lambda x: int(json.loads(x)['pair_ID'].replace('-','')))
         print ('num of data: {}'.format(len(fi_data_list)))
+        header_list = ['pair_ID','sentence_A','sentence_B','relatedness_score','answer','is_adversarial']
         with open(output,'w') as f:
-            f.write('pair_ID'+'\t'+'sentence_A'+'\t'+'sentence_B'+'\t'+'relatedness_score'+'\t'+'entailment_judgment'+'\n')
+            f.write('\t'.join(header_list)+'\n')
             for idx,sample in enumerate(fi_data_list,1):
                 sample = json.loads(sample)
-                f.write(str(idx)+'\t'+sample['sentence_A']+'\t'+sample['sentence_B']+'\t'+
-                        str(sample['relatedness_score'])+'\t'+sample['entailment_judgment']+'\n')
+                f.write('\t'.join(sample[header] for header in header_list)+'\n')
+
+def remove_normal_context(adversarial_normal_json_file,adversarial_json_file):
+    data_list = []
+    output_data_json = {"version":"1.1","data":data_list}
+    with open(adversarial_normal_json_file,'r') as f_in_normal_adver:
+            f_in_normal_adver_data = json.load(f_in_normal_adver)
+            for article in f_in_normal_adver_data['data']:
+                title = article['title']
+                output_paras = []
+                for para in article['paragraphs']:
+                    context = para['context']
+                    output_qas = []
+                    for qa in para['qas']:
+                        question = qa['question']
+                        idx = qa['id']
+                        answers = qa['answers']
+                        if len(idx.split('-')) > 1:
+                            # add to output qas
+                            output_qas.append(qa)
+                    output_para = {'context':context,'qas':output_qas}
+                    # remove normal sample
+                    if len(output_qas) > 0: output_paras.append(output_para)
+                output_article = {'paragraphs':output_paras,'title':title}
+                data_list.append(output_article)
+    json.dump(output_data_json, open(adversarial_json_file,'w'))
+
+def check_questions(check_file):
+    with open(check_file,'r') as f:
+        add_sen_dict = json.load(f)
+        num_item_qas = []
+        for item in add_sen_dict['data']:
+            for paragraph in item['paragraphs']:
+                num_item_qas.append(len(paragraph['qas']))
+
+        print(sum(num_item_qas))
 
 if __name__ == '__main__':
     print('=' * 80)
-    print('Transforming squad training')
+    # print('Transforming squad training')
     print('=' * 80)
-    transform_squad('train-v1.1.json','SICK_squad_train.txt')
+    # transform_squad('sample1k-HCVerifyAll.json','SICK_squad_test_add_sent.txt')
     print('=' * 80)
-    print('Transforming squad dev')
+    # print('Transforming squad dev')
     print('=' * 80)
-    transform_squad('dev-v1.1.json','SICK_squad_trial.txt')
-    # analysis_label('SICK_squad_train.txt')
+    # remove_normal_context('sample1k-HCVerifySample.json', 'SICK_squad_test_add_one_sent_adver.json')
+    # check_questions('SICK_squad_test_add_one_sent_adver.json')
+    # transform_squad('SICK_squad_test_add_one_sent_adver.json','SICK_squad_test_add_one_sent_adver.txt')
+
+    analysis_label('SICK_squad_test_add_one_sent_adver.txt')
     # print('=' * 80)
     # analysis_label('SICK_squad_trial.txt')
