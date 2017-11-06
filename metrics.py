@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score,precision_recall_fscore_support
 from torch.autograd import Variable as Var
 
 class Metrics():
@@ -34,9 +34,24 @@ class Metrics():
         x = Var(deepcopy(predictions), volatile=True)
         y = Var(deepcopy(labels), volatile=True)
         # TODO: make 1.5(1+2/2)
-        x = (x >= 1.5).type(torch.IntTensor)
-        y = y - 1
-        return f1_score(y.data.numpy(),x.data.numpy())
+        x = (x >= 1.5).int()
+        y = (y - 1).int()
+	# TODO: fix own implementation of f1
+        # intersection = (x == y).type(torch.IntTensor)
+        # x or y
+        # intersection = (intersection + x).eq(2)
+        # print intersection
+	# print x
+	# print y
+	# print intersection.sum()
+	# print x.sum()
+	# print y.sum()
+        # p = intersection.sum().float()/x.sum().float()
+        # r = intersection.sum().float()/y.sum().float()
+        # f1 = 2*p*r/(p+r)
+        # return p.data[0],r.data[0],f1.data[0]
+	answer = precision_recall_fscore_support(y.data.numpy(), x.data.numpy())
+        return answer[0][1],answer[1][1],answer[2][1]
 
 if __name__ == "__main__":
     # test f1
