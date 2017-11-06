@@ -75,9 +75,10 @@ def collect_wrong_samples(preds,labels,dev_file_path,wrong_file_path):
          open(wrong_file_path,'w') as f_out:
         f.readline()
         f_out.write('pair_ID' + '\t' + 'sentence_A' + '\t' + 'sentence_B' + '\t' + 'relatedness_score' + '\t' + 'pred_score'+ '\n' )
-        for line in f:
-            i, a, b, sim, ent = line.strip().split('\t')
-            if equal[i-1] == 0:
+        for idx,line in enumerate(f):
+	    # TODO: fix [:5] in python3(*rest)
+            i, a, b, sim, ent = line.strip().split('\t')[:5]
+            if equal[idx].data[0] == 0:
                 # means model makes mistakes
-                f_out.write('\t'.join([i,a,b,sim,preds[i-1]]) + '\n')
+                f_out.write('\t'.join([i,a,b,sim,str(preds[idx])]) + '\n')
 
