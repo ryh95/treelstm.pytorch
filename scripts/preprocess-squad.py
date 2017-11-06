@@ -53,7 +53,7 @@ def split(filepath, dst_dir):
          open(os.path.join(dst_dir, 'sim.txt'), 'w') as simfile:
             datafile.readline()
             for line in datafile:
-                i, a, b, sim, ent = line.strip().split('\t')
+                i, a, b, sim, ent,*rest = line.strip().split('\t')
                 idfile.write(i + '\n')
                 afile.write(a + '\n')
                 bfile.write(b + '\n')
@@ -77,7 +77,8 @@ if __name__ == '__main__':
     lib_dir = os.path.join(base_dir, 'lib')
     train_dir = os.path.join(sick_dir, 'train')
     dev_dir = os.path.join(sick_dir, 'dev')
-    make_dirs([train_dir, dev_dir])
+    test_dir = os.path.join(sick_dir, 'test')
+    make_dirs([train_dir, dev_dir,test_dir])
 
     # java classpath for calling Stanford parser
     classpath = ':'.join([
@@ -88,10 +89,12 @@ if __name__ == '__main__':
     # split into separate files
     split(os.path.join(sick_dir, 'SICK_squad_train.txt'), train_dir)
     split(os.path.join(sick_dir, 'SICK_squad_trial.txt'), dev_dir)
+    split(os.path.join(sick_dir, 'SICK_squad_test_add_one_sent_adver.txt'), test_dir)
 
     # parse sentences
     parse(train_dir, cp=classpath)
     parse(dev_dir, cp=classpath)
+    parse(test_dir,cp=classpath)
 
     # get vocabulary
     build_vocab(
