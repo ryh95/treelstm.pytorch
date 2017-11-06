@@ -9,7 +9,7 @@ def analysis_label(sick_file):
     with open(sick_file,'r') as f:
         f.readline()
         for line in f:
-            i, a, b, sim, ent = line.strip().split('\t')
+            i, a, b, sim, ent,*_ = line.strip().split('\t')
             if int(sim) == 2:
                 n_pos += 1
             elif int(sim) == 1:
@@ -31,7 +31,7 @@ def count_sent_len(file):
             n_token_a += len(a)
             n_token_b += len(b)
             n_line += 1
-    print float(n_token_a)/n_line,float(n_token_b)/n_line
+    print (float(n_token_a)/n_line,float(n_token_b)/n_line)
 
 
 def filter_sent_len(file,file_out,n_sample_threshold,len_a_threshold=10000,len_b_threshold=10000,ratio=0.5):
@@ -79,10 +79,12 @@ def displot_sick(file):
 #     return a.replace(u'₹','h')
 
 if __name__ == '__main__':
-    n_sample_th = 3000
-    f_in = 'SICK_squad_dev_all.txt'
-    f_out = 'SICK_squad_dev_'+ str(n_sample_th) + '.txt'
-    len_b_th = 100
+    n_sample_th = 90000
+    # train/dev
+    file_type = 'train'
+    f_in = 'SICK_squad_'+file_type+'_all.txt'
+    f_out = 'SICK_squad_'+file_type+'_'+ str(n_sample_th) + '.txt'
+    len_b_th = 1000
 
     filter_sent_len(f_in,f_out,n_sample_th,len_b_threshold=len_b_th)
     analysis_label(f_out)
