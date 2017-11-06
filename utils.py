@@ -63,7 +63,7 @@ def map_label_to_target(label,num_classes):
         target[0][ceil-1] = label - floor
     return target
 
-def collect_wrong_samples(preds,labels,dev_file_path):
+def collect_wrong_samples(preds,labels,dev_file_path,wrong_file_path):
     x = Var(deepcopy(preds), volatile=True)
     y = Var(deepcopy(labels), volatile=True)
     # TODO: make 1.5(1+2/2)
@@ -72,7 +72,7 @@ def collect_wrong_samples(preds,labels,dev_file_path):
     equal = (x == y).type(torch.IntTensor)
 
     with open(dev_file_path,'r') as f,\
-         open('wrong_samples.txt','w') as f_out:
+         open(wrong_file_path,'w') as f_out:
         f.readline()
         f_out.write('pair_ID' + '\t' + 'sentence_A' + '\t' + 'sentence_B' + '\t' + 'relatedness_score' + '\t' + 'pred_score'+ '\n' )
         for line in f:

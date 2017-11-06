@@ -165,7 +165,9 @@ def main():
         if args.is_inference:
             # use for manual check and error analysis
             dev_path = os.path.join(args.data, 'SICK_squad_trial.txt')
-            collect_wrong_samples(dev_pred,dev_dataset.labels,dev_path)
+            collect_wrong_samples(dev_pred,dev_dataset.labels,dev_path,'wrong_dev_samples.txt')
+            test_path = os.path.join(args.data, 'SICK_squad_test_add_one_sent_adver.txt')
+            collect_wrong_samples(test_pred,test_dataset.labels,test_path,'wrong_test_samples.txt')
             break
 
         if best < dev_pearson:
