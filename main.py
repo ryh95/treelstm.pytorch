@@ -131,7 +131,7 @@ def main():
     check_path = os.path.join(args.save, args.expname + '.pth.pt')
     if args.is_inference:
         checkpoint = torch.load(check_path)
-        args = checkpoint['args']
+        # args = checkpoint['args']
         optimizer = checkpoint['optim']
         model_para = checkpoint['model']
 
@@ -144,23 +144,23 @@ def main():
             train_loss, train_pred = trainer.test(train_dataset)
             train_pearson = metrics.pearson(train_pred, train_dataset.labels)
             train_mse = metrics.mse(train_pred, train_dataset.labels)
-            train_f1 = metrics.f1(train_pred, train_dataset.labels)
-            print('==> Train    Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(train_loss, train_pearson, train_mse,
+            p,r,train_f1 = metrics.f1(train_pred, train_dataset.labels)
+            print('==> Train    Loss: {}\tPearson: {}\tMSE: {}\tP: {}\tR: {}\tF1: {}'.format(train_loss, train_pearson, train_mse,p,r,
                                                                                train_f1))
 
         dev_loss, dev_pred     = trainer.test(dev_dataset)
 
         dev_pearson = metrics.pearson(dev_pred,dev_dataset.labels)
         dev_mse = metrics.mse(dev_pred,dev_dataset.labels)
-        dev_f1 = metrics.f1(dev_pred,dev_dataset.labels)
-        print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(dev_loss,dev_pearson,dev_mse,dev_f1))
+        p,r,dev_f1 = metrics.f1(dev_pred,dev_dataset.labels)
+        print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tP: {}\tR: {}\tF1: {}'.format(dev_loss,dev_pearson,dev_mse,p,r,dev_f1))
 
         test_loss, test_pred = trainer.test(test_dataset)
 
         test_pearson = metrics.pearson(test_pred, test_dataset.labels)
         test_mse = metrics.mse(test_pred, test_dataset.labels)
-        test_f1 = metrics.f1(test_pred, test_dataset.labels)
-        print('==> Test      Loss: {}\tPearson: {}\tMSE: {}\tF1: {}'.format(test_loss, test_pearson, test_mse, test_f1))
+        p,r,test_f1 = metrics.f1(test_pred, test_dataset.labels)
+        print('==> Test      Loss: {}\tPearson: {}\tMSE: {}\tP: {}\tR: {}\tF1: {}'.format(test_loss, test_pearson, test_mse,p,r,test_f1))
 
         if args.is_inference:
             # use for manual check and error analysis
