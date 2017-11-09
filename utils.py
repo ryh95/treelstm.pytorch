@@ -1,6 +1,9 @@
+from __future__ import division
 from __future__ import print_function
 
-import os, math
+import os
+import math
+
 import torch
 from copy import deepcopy
 from torch.autograd import Variable as Var
@@ -30,7 +33,7 @@ def load_word_vectors(path):
         for line in f:
             contents = line.rstrip('\n').split(' ')
             words[idx] = contents[0]
-            vectors[idx] = torch.Tensor(map(float, contents[1:]))
+            vectors[idx] = torch.Tensor(list(map(float, contents[1:])))
             idx += 1
     with open(path+'.vocab','w') as f:
         for word in words:
@@ -67,16 +70,16 @@ def collect_wrong_samples(preds,labels,dev_file_path,wrong_file_path):
     x = Var(deepcopy(preds), volatile=True)
     y = Var(deepcopy(labels), volatile=True)
     # TODO: make 1.5(1+2/2)
-    x = (x >= 1.5).type(torch.IntTensor)
-    y = (y - 1).type(torch.IntTensor)
-    equal = (x == y).type(torch.IntTensor)
+    x = (x >= 1.5).int()
+    y = (y - 1).int()
+    equal = (x == y).int()
 
     with open(dev_file_path,'r') as f,\
          open(wrong_file_path,'w') as f_out:
         f.readline()
         f_out.write('pair_ID' + '\t' + 'sentence_A' + '\t' + 'sentence_B' + '\t' + 'relatedness_score' + '\t' + 'pred_score'+ '\n' )
         for idx,line in enumerate(f):
-	    # TODO: fix [:5] in python3(*rest)
+        # TODO: fix [:5] in python3(*rest)
             i, a, b, sim, ent = line.strip().split('\t')[:5]
             if equal[idx].data[0] == 0:
                 # means model makes mistakes

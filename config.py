@@ -11,10 +11,20 @@ def parse_args():
     parser.add_argument('--is_inference',default=False,help='use trained model to inference or not')
     parser.add_argument('--expname', type=str, default='test',
                         help='Name to identify experiment')
-    parser.add_argument('--batchsize', default=25, type=int,
-                        help='batchsize for optimizer updates')
+    # model arguments
+    parser.add_argument('--input_dim', default=300, type=int,
+                        help='Size of input word vector')
+    parser.add_argument('--mem_dim', default=150, type=int,
+                        help='Size of TreeLSTM cell state')
+    parser.add_argument('--hidden_dim', default=50, type=int,
+                        help='Size of classifier MLP')
+    parser.add_argument('--num_classes', default=5, type=int,
+                        help='Number of classes in dataset')
+    # training arguments
     parser.add_argument('--epochs', default=15, type=int,
                         help='number of total epochs to run')
+    parser.add_argument('--batchsize', default=25, type=int,
+                        help='batchsize for optimizer updates')
     parser.add_argument('--lr', default=0.01, type=float,
                         metavar='LR', help='initial learning rate')
     parser.add_argument('--wd', default=1e-4, type=float,
@@ -24,6 +34,7 @@ def parse_args():
                               incompatible with weight decay')
     parser.add_argument('--optim', default='adagrad',
                         help='optimizer (default: adagrad)')
+    # miscellaneous options
     parser.add_argument('--seed', default=123, type=int,
                         help='random seed (default: 123)')
     cuda_parser = parser.add_mutually_exclusive_group(required=False)

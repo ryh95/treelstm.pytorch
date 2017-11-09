@@ -2,8 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 import torch
-import torch.nn as nn
-from sklearn.metrics import f1_score,precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support
 from torch.autograd import Variable as Var
 
 class Metrics():
@@ -13,16 +12,14 @@ class Metrics():
     def pearson(self, predictions, labels):
         x = deepcopy(predictions)
         y = deepcopy(labels)
-        x -= x.mean()
-        x /= x.std()
-        y -= y.mean()
-        y /= y.std()
+        x = (x - x.mean()) / x.std()
+        y = (y - y.mean()) / y.std()
         return torch.mean(torch.mul(x,y))
 
     def mse(self, predictions, labels):
-        x = Var(deepcopy(predictions), volatile=True)
-        y = Var(deepcopy(labels), volatile=True)
-        return nn.MSELoss()(x,y).data[0]
+        x = deepcopy(predictions)
+        y = deepcopy(labels)
+        return torch.mean((x - y) ** 2)
 
     def f1(self, predictions,labels):
         '''
