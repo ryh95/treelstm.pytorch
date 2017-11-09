@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -78,6 +79,49 @@ def displot_sick(file):
 #     a = '₹'.decode('utf8')
 #     return a.replace(u'₹','h')
 
+def filter_sen_pair(txt_in_file,txt_out_file):
+    '''
+    txt_file is some file like SICK_squad_test_add_one_sent_adver.txt
+    :param txt_file:
+    :return: filtered txt file
+    '''
+    def filter_v_list(v_list):
+        # only 1 in 2 will filter 1 in value_list
+        filter_v = False
+        sim_list = [v.split('\t')[0] for v in v_list]
+        if '1' in sim_list and '2' in sim_list:
+            filter_v = True
+
+        if filter_v:
+            for v in v_list:
+                if v.split('\t')[0] == '1':
+                    v_list.remove(v)
+        return v_list
+
+    with open(txt_in_file,'r') as f_in,\
+         open(txt_out_file,'w') as f_out:
+        f_out.write(f_in.readline())
+        data_dict = defaultdict(list)
+        out_list = []
+        for line in f_in:
+            *key,sim,ans,is_adv = line.split('\t')
+            str_key = '\t'.join(key)
+            str_value = '\t'.join([sim,ans,is_adv])
+            data_dict[str_key].append(str_value)
+
+        # filter
+        for key in data_dict:
+            v_list = filter_v_list(data_dict[key])
+            for v in v_list:
+                out_list.append(key+'\t'+v)
+        def tmp_sort_func(x):
+            a,b = x.split('\t')[0].split('-')
+            return int(a),int(b)
+        out_list = sorted(set(out_list),key=lambda x: tmp_sort_func(x))
+        for data in out_list:
+            f_out.write(data)
+
+
 if __name__ == '__main__':
     n_sample_th = 90000
     # train/dev
@@ -90,6 +134,7 @@ if __name__ == '__main__':
     analysis_label(f_out)
     count_sent_len(f_out)
     displot_sick(f_out)
+    filter_sen_pair('SICK_squad_test_add_one_sent_adver.txt','SICK_squad_test_add_one_sent_adver_filter.txt')
 
     # print (check_untokenizable())
 

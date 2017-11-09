@@ -128,7 +128,10 @@ def transform_squad(original_json_file,output):
         print ('num of data(duplicate): {}'.format(len(data_list)))
         fi_data_list = set(data_list)
         # sort according to int pair_ID
-        fi_data_list = sorted(fi_data_list,key=lambda x: int(json.loads(x)['pair_ID'].replace('-','')))
+        def tmp_sort_func(x):
+            a,b = json.loads(x)['pair_ID'].split('-')
+            return int(a),int(b)
+        fi_data_list = sorted(fi_data_list,key=lambda x: tmp_sort_func(x))
         print ('num of data: {}'.format(len(fi_data_list)))
         header_list = ['pair_ID','sentence_A','sentence_B','relatedness_score','answer','is_adversarial']
         with open(output,'w') as f:
