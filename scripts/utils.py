@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 from collections import defaultdict
 
 import seaborn as sns
@@ -121,6 +122,16 @@ def filter_sen_pair(txt_in_file,txt_out_file):
         for data in out_list:
             f_out.write(data)
 
+def merge_add_any_json(merged_adver_json_file,*file_in_list):
+    data_list = []
+    output_data_json = {"version": "1.1", "data": data_list}
+    for file in file_in_list:
+        with open(file, 'r') as f_in_adver:
+            f_in_adver_data = json.load(f_in_adver)
+            adver_data_list = f_in_adver_data['data']
+            data_list += adver_data_list
+
+    json.dump(output_data_json, open(merged_adver_json_file, 'w'))
 
 if __name__ == '__main__':
     n_sample_th = 90000
@@ -135,6 +146,8 @@ if __name__ == '__main__':
     count_sent_len(f_out)
     displot_sick(f_out)
     filter_sen_pair('SICK_squad_test_add_one_sent_adver.txt','SICK_squad_test_add_one_sent_adver_filter.txt')
+    # file_in_list = ['adversarial_data_'+str(i)+'.json' for i in range(10)]
+    # merge_add_any_json('adversarial_data.json',*file_in_list)
 
     # print (check_untokenizable())
 
