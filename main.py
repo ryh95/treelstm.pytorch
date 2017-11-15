@@ -103,14 +103,12 @@ def main():
     logger.debug('==> Size of test data    : %d ' % len(test_dataset))
 
     # initialize model, criterion/loss_function, optimizer
-    # TODO: maybe can remove args.sparse
     model = SimilarityTreeLSTM(
                 vocab.size(),
                 args.input_dim,
                 args.mem_dim,
                 args.hidden_dim,
-                args.num_classes,
-                args.sparse)
+                args.num_classes,)
     criterion = nn.KLDivLoss()
     if args.cuda:
         model.cuda(), criterion.cuda()
