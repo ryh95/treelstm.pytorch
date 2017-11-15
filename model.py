@@ -78,5 +78,6 @@ class SimilarityTreeLSTM(nn.Module):
         rinputs = self.emb(rinputs)
         lstate, lhidden = self.childsumtreelstm(ltree, linputs)
         rstate, rhidden = self.childsumtreelstm(rtree, rinputs)
+        # TODO: Why not use lhidden rhidden ?
         output = self.similarity(lstate, rstate)
         return output
