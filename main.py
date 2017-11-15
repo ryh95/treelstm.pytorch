@@ -103,6 +103,7 @@ def main():
     logger.debug('==> Size of test data    : %d ' % len(test_dataset))
 
     # initialize model, criterion/loss_function, optimizer
+    # TODO: maybe can remove args.sparse
     model = SimilarityTreeLSTM(
                 vocab.size(),
                 args.input_dim,
@@ -141,7 +142,7 @@ def main():
     # plug these into embedding matrix inside model
     if args.cuda:
         emb = emb.cuda()
-    model.emb.weight.data.copy_(emb)
+    model.embd.weight.data.copy_(emb)
 
     # create trainer object for training and testing
     trainer = Trainer(args, model, criterion, optimizer)
