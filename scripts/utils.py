@@ -133,6 +133,25 @@ def merge_add_any_json(merged_adver_json_file,*file_in_list):
 
     json.dump(output_data_json, open(merged_adver_json_file, 'w'))
 
+def split_sentence_answer_span(txt_in_file,txt_out_file,num_samples):
+    '''
+    txt_file is some file like SICK_squad_test_add_one_sent_adver.txt
+    :param txt_in_file:
+    :return:
+    '''
+    with open(txt_in_file,'r') as f,\
+         open(txt_out_file,'w') as f_out:
+        f.readline()
+        sample_num = 0
+        for line in f:
+            i, a, b, sim, ans,*_ = line.strip().split('\t')
+            if sim == '2':
+                f_out.write(b+'\t'+ans+'\n')
+                sample_num += 1
+            if sample_num >= num_samples:
+                break
+
+
 if __name__ == '__main__':
     n_sample_th = 90000
     # train/dev
@@ -148,6 +167,8 @@ if __name__ == '__main__':
     filter_sen_pair('SICK_squad_test_add_one_sent_adver.txt','SICK_squad_test_add_one_sent_adver_filter.txt')
     # file_in_list = ['adversarial_data_'+str(i)+'.json' for i in range(10)]
     # merge_add_any_json('adversarial_data.json',*file_in_list)
+
+    split_sentence_answer_span('SICK_squad_train_filter.txt','dev.txt',500)
 
     # print (check_untokenizable())
 
