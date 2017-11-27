@@ -1,13 +1,11 @@
 import copy
 import json
 import random
-from nltk.tokenize import WordPunctTokenizer
 
 import re
 # ssplit sentence in squad
 from pycorenlp import StanfordCoreNLP
 
-from scripts.utils import analysis_label
 
 nlp = StanfordCoreNLP('http://localhost:9000')
 
@@ -174,19 +172,3 @@ def check_questions(check_file):
                 num_item_qas.append(len(paragraph['qas']))
 
         print(sum(num_item_qas))
-
-if __name__ == '__main__':
-    print('=' * 80)
-    # print('Transforming squad training')
-    print('=' * 80)
-    # transform_squad('sample1k-HCVerifyAll.json','SICK_squad_test_add_sent.txt')
-    print('=' * 80)
-    # print('Transforming squad dev')
-    print('=' * 80)
-    # remove_normal_context('sample1k-HCVerifySample.json', 'SICK_squad_test_add_one_sent_adver.json')
-    # check_questions('SICK_squad_test_add_one_sent_adver.json')
-    # transform_squad('SICK_squad_test_add_one_sent_adver.json','SICK_squad_test_add_one_sent_adver.txt')
-
-    analysis_label('SICK_squad_test_add_one_sent_adver.txt')
-    # print('=' * 80)
-    # analysis_label('SICK_squad_trial.txt')

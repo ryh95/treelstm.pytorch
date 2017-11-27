@@ -146,33 +146,7 @@ def split_sentence_answer_span(txt_in_file,txt_out_file,num_samples):
         for line in f:
             i, a, b, sim, ans,*_ = line.strip().split('\t')
             if sim == '2':
-                f_out.write(b+'\t'+ans+'\n')
+                f_out.write(a+'\t'+b+'\t'+ans+'\n')
                 sample_num += 1
             if sample_num >= num_samples:
                 break
-
-
-if __name__ == '__main__':
-    n_sample_th = 90000
-    # train/dev
-    file_type = 'train'
-    f_in = 'SICK_squad_'+file_type+'_all.txt'
-    f_out = 'SICK_squad_'+file_type+'_'+ str(n_sample_th) + '.txt'
-    len_b_th = 1000
-
-    filter_sent_len(f_in,f_out,n_sample_th,len_b_threshold=len_b_th)
-    analysis_label(f_out)
-    count_sent_len(f_out)
-    displot_sick(f_out)
-    filter_sen_pair('SICK_squad_test_add_one_sent_adver.txt','SICK_squad_test_add_one_sent_adver_filter.txt')
-    # file_in_list = ['adversarial_data_'+str(i)+'.json' for i in range(10)]
-    # merge_add_any_json('adversarial_data.json',*file_in_list)
-
-    split_sentence_answer_span('SICK_squad_train_filter.txt','dev.txt',500)
-
-    # print (check_untokenizable())
-
-    # f1 = 'SICK_squad_train_all.txt'
-    # f2 = 'SICK_squad_train.txt'
-    # analysis_label(f1)
-    # analysis_label(f2)
