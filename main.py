@@ -20,7 +20,7 @@ from dataset import SICKDataset
 # METRICS CLASS FOR EVALUATION
 from metrics import Metrics
 # UTILITY FUNCTIONS
-from utils import load_word_vectors, build_vocab, collect_wrong_samples
+from utils import load_word_vectors, build_vocab, collect_wrong_samples, dump_preds
 # CONFIG PARSER
 from config import parse_args
 # TRAIN AND TEST HELPER FUNCTIONS
@@ -149,13 +149,17 @@ def main():
                                                                                train_f1))
 
         dev_loss, dev_pred     = trainer.test(dev_dataset)
-
+        dev_path = os.path.join(args.data, 'SICK_squad_trial.txt')
         dev_pearson = metrics.pearson(dev_pred,dev_dataset.labels)
         dev_mse = metrics.mse(dev_pred,dev_dataset.labels)
         p,r,dev_f1 = metrics.f1(dev_pred,dev_dataset.labels)
         print('==> Dev      Loss: {}\tPearson: {}\tMSE: {}\tP: {}\tR: {}\tF1: {}'.format(dev_loss,dev_pearson,dev_mse,p,r,dev_f1))
 
         test_loss, test_pred = trainer.test(test_dataset)
+        test_path = os.path.join(args.data, 'SICK_squad_test_add_any_adver_refilter.txt')
+        result_file_path = os.path.join(args.data, 'SICK_squad_test_add_any_adver_refilter_result.txt')
+
+        dump_preds(test_pred,test_path,result_file_path)
 
         test_pearson = metrics.pearson(test_pred, test_dataset.labels)
         test_mse = metrics.mse(test_pred, test_dataset.labels)
@@ -164,9 +168,7 @@ def main():
 
         if args.is_inference:
             # use for manual check and error analysis
-            dev_path = os.path.join(args.data, 'SICK_squad_trial.txt')
             collect_wrong_samples(dev_pred,dev_dataset.labels,dev_path,'wrong_dev_samples.txt')
-            test_path = os.path.join(args.data, 'SICK_squad_test_add_one_sent_adver.txt')
             collect_wrong_samples(test_pred,test_dataset.labels,test_path,'wrong_test_samples.txt')
             break
 
