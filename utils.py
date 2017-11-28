@@ -82,3 +82,12 @@ def collect_wrong_samples(preds,labels,dev_file_path,wrong_file_path):
                 # means model makes mistakes
                 f_out.write('\t'.join([i,a,b,sim,str(preds[idx])]) + '\n')
 
+def dump_preds(preds,file_path,result_file_path):
+    x = Var(deepcopy(preds), volatile=True)
+    with open(file_path,'r') as f,\
+         open(result_file_path,'w') as f_out:
+        f.readline()
+        for idx,line in enumerate(f):
+            pair_ID,sen_A,sen_B,re_score,ans,is_adver = line.split('\t')
+            pred_value = x[idx].data[0]
+            f_out.write('\t'.join([pair_ID,sen_A,sen_B,str(pred_value),re_score,is_adver])+'\n')
