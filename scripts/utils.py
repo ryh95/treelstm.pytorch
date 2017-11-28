@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import random
 from collections import defaultdict
 
 import seaborn as sns
@@ -81,7 +82,27 @@ def displot_sick(file):
 
 def filter_sen_pair(txt_in_file,txt_out_file):
     '''
-    txt_file is some file like SICK_squad_test_add_one_sent_adver.txt
+    txt_in_file is some output file after transform-squad processed
+    like SICK_squad_test_add_one_sent_adver.txt
+    SICK_squad_test_add_any_adver.txt
+
+    since questions may have multiple answers
+    so may have following sentence pairs
+    e.g.
+    1-3-0	What was the first Super Bowl to use the standardized logo template?
+    On June 4, 2014, the NFL announced that the practice of branding Super Bowl games with Roman numerals, a practice established at Super Bowl V, would be temporarily suspended, and that the game would be named using Arabic numerals as Super Bowl 50 as opposed to Super Bowl L.
+    1	Null	0
+    1-3-0	What was the first Super Bowl to use the standardized logo template?
+    On June 4, 2014, the NFL announced that the practice of branding Super Bowl games with Roman numerals, a practice established at Super Bowl V, would be temporarily suspended, and that the game would be named using Arabic numerals as Super Bowl 50 as opposed to Super Bowl L.
+    2	V	0
+    one of this answer is Super Bowl XLV
+    so the first pair result is null
+    but another answer is V
+    so the second pair result is V
+
+    but the sentence is actually can answer the question
+    so we should remove the first pair
+    this function is for this purpose
     :param txt_file:
     :return: filtered txt file
     '''
@@ -115,30 +136,87 @@ def filter_sen_pair(txt_in_file,txt_out_file):
             for v in v_list:
                 out_list.append(key+'\t'+v)
         def tmp_sort_func(x):
-            a,b = x.split('\t')[0].split('-')
-            return int(a),int(b)
+            a,b,c = x.split('\t')[0].split('-')
+            return int(a),int(b),int(c)
         out_list = sorted(set(out_list),key=lambda x: tmp_sort_func(x))
         for data in out_list:
             f_out.write(data)
 
+def refilter_sen_pair(txt_in_file,txt_out_file):
+    '''
+    txt_in_file is some output file after filter_sen_pair processed
+    e.g.
+    SICK_squad_test_add_any_adver_filter.txt
+    ..
 
-if __name__ == '__main__':
-    n_sample_th = 90000
-    # train/dev
-    file_type = 'train'
-    f_in = 'SICK_squad_'+file_type+'_all.txt'
-    f_out = 'SICK_squad_'+file_type+'_'+ str(n_sample_th) + '.txt'
-    len_b_th = 1000
+    although filter_sen_pair removed some of sentence pair, it still has problems
+    e.g.
+    1-2-0	Where hotel did the Panthers stay at?
+    The Panthers used the San Jose State practice facility and stayed at the San Jose Marriott.
+    2	the San Jose Marriott	0
+    1-2-0	Where hotel did the Panthers stay at?
+    The Panthers used the San Jose State practice facility and stayed at the San Jose Marriott.
+    2	San Jose Marriott.	0
 
-    filter_sent_len(f_in,f_out,n_sample_th,len_b_threshold=len_b_th)
-    analysis_label(f_out)
-    count_sent_len(f_out)
-    displot_sick(f_out)
-    filter_sen_pair('SICK_squad_test_add_one_sent_adver.txt','SICK_squad_test_add_one_sent_adver_filter.txt')
+    both sentence pair has same answer sentence because multiple answer spans are in this sentence
+    but in order to select answer sentence one would be fine
+    two or more may be too esay for model to select it out
 
-    # print (check_untokenizable())
+    (maybe has no effect? if a model knows a sentence is answer sentence and suppose there are 3 duplicates
+    those would all in the forward position
+    if a model can't figure out answer sentence then those would all in the last position
+    so when use max to find answer sentence both would have no effect
+    this needs to verify)
 
-    # f1 = 'SICK_squad_train_all.txt'
-    # f2 = 'SICK_squad_train.txt'
-    # analysis_label(f1)
-    # analysis_label(f2)
+    this could combine into filter_sen_pair
+    :param txt_in_file:
+    :param txt_out_file:
+    :return:
+    '''
+    def filter_v_list(v_list):
+        # only 1 in 2 will filter 1 in value_list
+        filter_v = False
+        sim_list = [int(v.split('\t')[0]) for v in v_list]
+        if sum(sim_list) == 2*len(sim_list):
+            filter_v = True
+
+        if filter_v:
+            return [random.choice(v_list)]
+        return v_list
+
+    with open(txt_in_file,'r') as f_in,\
+         open(txt_out_file,'w') as f_out:
+        f_out.write(f_in.readline())
+        data_dict = defaultdict(list)
+        out_list = []
+        for line in f_in:
+            *key,sim,ans,is_adv = line.split('\t')
+            str_key = '\t'.join(key)
+            str_value = '\t'.join([sim,ans,is_adv])
+            data_dict[str_key].append(str_value)
+
+        # filter
+        for key in data_dict:
+            v_list = filter_v_list(data_dict[key])
+            for v in v_list:
+                out_list.append(key+'\t'+v)
+        def tmp_sort_func(x):
+            a,b,c = x.split('\t')[0].split('-')
+            return int(a),int(b),int(c)
+        out_list = sorted(set(out_list),key=lambda x: tmp_sort_func(x))
+        for data in out_list:
+            f_out.write(data)
+
+def check_context(txt_in_file):
+    '''
+
+    :param txt_in_file: test adversarial refilter file
+    :return:
+    '''
+    context_id_set = set()
+    with open(txt_in_file,'r') as f_in:
+        f_in.readline()
+        for line in f_in:
+            pair_id = line.split('\t')[0]
+            context_id_set.add('-'.join(pair_id.split('-')[:-1]))
+    print(len(context_id_set))
