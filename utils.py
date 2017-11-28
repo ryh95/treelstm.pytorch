@@ -87,7 +87,10 @@ def dump_preds(preds,file_path,result_file_path):
     with open(file_path,'r') as f,\
          open(result_file_path,'w') as f_out:
         f.readline()
+        f_out.write('\t'.join(['pair_ID','sentence_A','sentence_B','pred_score','relatedness_score','is_adversarial']))
+        f_out.write('\n')
         for idx,line in enumerate(f):
+            line = line.strip('\n')
             pair_ID,sen_A,sen_B,re_score,ans,is_adver = line.split('\t')
             pred_value = x[idx].data[0]
             f_out.write('\t'.join([pair_ID,sen_A,sen_B,str(pred_value),re_score,is_adver])+'\n')
