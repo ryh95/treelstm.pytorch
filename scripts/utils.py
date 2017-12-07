@@ -220,3 +220,88 @@ def check_context(txt_in_file):
             pair_id = line.split('\t')[0]
             context_id_set.add('-'.join(pair_id.split('-')[:-1]))
     print(len(context_id_set))
+
+def merge_sen_pair_result_to_context_pair(txt_in_file,txt_out_file):
+    '''
+    e.g.
+    SICK_squad_test_add_any_adver_refilter_result.txt
+    :param txt_in_file:
+    :return:
+    '''
+    with open(txt_in_file,'r') as f_in,\
+         open(txt_out_file,'w') as f_out:
+        f_in.readline()
+        context_pair_dict = defaultdict(list)
+        for line in f_in:
+            line = line.strip('\n')
+            pair_ID,sen_A,*rest = line.split('\t')
+            context_pair_ID = '-'.join(pair_ID.split('-')[:-1])
+            context_pair_dict[context_pair_ID+'\t'+sen_A].append('\t'.join(rest))
+
+        # sort dict by keys
+        def tmp_sort_func(x):
+            pair_ID = x.split('\t')[0]
+            a,b = pair_ID.split('-')
+            return int(a),int(b)
+        new_keys = sorted(context_pair_dict.keys(),key=lambda x: tmp_sort_func(x))
+
+        for key in new_keys:
+            value_list = context_pair_dict[key]
+            value = max(value_list,key=lambda x: float(x.split('\t')[1]))
+            f_out.write(key+'\t'+value+'\n')
+
+def evaluate_context_pair(txt_in_file):
+    with open(txt_in_file,'r') as f_in:
+        n_correct = 0
+        n_all = 0
+        for line in f_in:
+            line = line.strip('\n')
+            context_pair_ID,sen_A,sen_B,pred_score,re_score,is_adver = line.split('\t')
+            # since all the choosen sen_B is the correct sentences that model thinks
+            # so just calculate how many re_score is 2 would be precision
+            if re_score == '2':
+                n_correct += 1
+            n_all += 1
+        print(n_correct,n_all)
+        print(n_correct/n_all)
+
+def merge_context_result_sen_pair(context_result_file,S_Q_a_pair_file,merged_file):
+    '''
+    after merge_sen_pair_result_to_context_pair
+    add answer for context_result
+    i.e.
+    produce <S,Q,a> pair
+    :param context_result_file:
+    :param S_Q_a_pair_file:
+    :param merged_file:
+    :return:
+    '''
+    # get answer dict from S_Q_a_pair_file
+    S_Q_a_pair_dict = defaultdict(list)
+    with open(S_Q_a_pair_file,'r') as f:
+        # remove header
+        f.readline()
+        for line in f:
+            line = line.strip('\n')
+            idx,sen_A,sen_B,re_score,answer,is_adv = line.split('\t')
+            if re_score == '2':
+                S_Q_a_pair_dict[sen_A].append(answer)
+
+    with open(context_result_file,'r') as f,\
+         open(merged_file,'w') as f_out:
+        for line in f:
+            line = line.strip('\n')
+            idx,sen_A,sen_B,pred_score,re_score,is_adv = line.split('\t')
+            answer_list = S_Q_a_pair_dict[sen_A]
+            for answer in answer_list:
+                f_out.write(sen_A+'\t'+sen_B+'\t'+answer+'\t'+re_score+'\n')
+
+def filter_wrong_context(txt_merged_file,filtered_merge_file):
+    with open(txt_merged_file,'r') as f,\
+         open(filtered_merge_file,'w') as f_out:
+        for line in f:
+            line = line.strip('\n')
+            # test = line.split('\t')
+            sen_A,sen_B,ans,re_score = line.split('\t')
+            if (ans in sen_B) and re_score == '2':
+                f_out.write(sen_A+'\t'+sen_B+'\t'+ans+'\n')
