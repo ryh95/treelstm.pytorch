@@ -90,7 +90,7 @@ def transform_squad(original_json_file,output):
                             if sen_id == sen_pos:
                                 try:
                                     idx = sentence.index(text)
-                                    sample = {"pair_ID":str(article_id)+'-'+str(para_id),
+                                    sample = {"pair_ID":str(article_id)+'-'+str(para_id)+'-'+str(sen_id),
                                               "sentence_A":qa['question'],
                                               "sentence_B":sentence.replace('\n',''),
                                               "relatedness_score":'2' ,
@@ -103,7 +103,7 @@ def transform_squad(original_json_file,output):
                                     n_error_ssplit += 1
                                     # print('Error ssplit')
                             else:
-                                sample = {"pair_ID":str(article_id)+'-'+str(para_id),
+                                sample = {"pair_ID":str(article_id)+'-'+str(para_id)+'-'+str(sen_id),
                                           "sentence_A": qa['question'],
                                           "sentence_B": sentence.replace('\n',''),
                                           "relatedness_score": '1',
@@ -127,8 +127,8 @@ def transform_squad(original_json_file,output):
         fi_data_list = set(data_list)
         # sort according to int pair_ID
         def tmp_sort_func(x):
-            a,b = json.loads(x)['pair_ID'].split('-')
-            return int(a),int(b)
+            a,b,c = json.loads(x)['pair_ID'].split('-')
+            return int(a),int(b),int(c)
         fi_data_list = sorted(fi_data_list,key=lambda x: tmp_sort_func(x))
         print ('num of data: {}'.format(len(fi_data_list)))
         header_list = ['pair_ID','sentence_A','sentence_B','relatedness_score','answer','is_adversarial']
