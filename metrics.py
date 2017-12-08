@@ -6,6 +6,7 @@ import torch
 from sklearn.metrics import precision_recall_fscore_support
 from torch.autograd import Variable as Var
 
+
 class Metrics():
     def __init__(self, num_classes):
         self.num_classes = num_classes
@@ -15,7 +16,7 @@ class Metrics():
         y = deepcopy(labels)
         x = (x - x.mean()) / x.std()
         y = (y - y.mean()) / y.std()
-        return torch.mean(torch.mul(x,y))
+        return torch.mean(torch.mul(x, y))
 
     def mse(self, predictions, labels):
         x = deepcopy(predictions)

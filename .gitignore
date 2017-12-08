@@ -5,7 +5,6 @@ logs
 *.class
 lib/stanford-parser
 lib/stanford-tagger
-sftp-config.json
 job.py
 *.pyc
 .idea/
